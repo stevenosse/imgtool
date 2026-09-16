@@ -11,6 +11,7 @@ import type { CutPiece, OutputFormat, ToolMode, TrimOptions } from './composable
 import { disposePieces, loadImage, seedLines, setImage, useCutter } from './composables/useCutter'
 
 const repoUrl = 'https://github.com/stevenosse/imgtool'
+const xUrl = 'https://x.com/nossesteve'
 
 const { image, vLines, hLines, cells, zones, cutImage, moveLine, addLine, removeLine, addZone, removeZone, clearZones } = useCutter()
 
@@ -315,12 +316,24 @@ onBeforeUnmount(() => {
       </main>
 
       <footer class="footer">
-        <p>
-          Built in the open, and <strong>contributions are welcome!</strong>
-          <a :href="repoUrl" target="_blank" rel="noopener">Star or fork on GitHub</a>,
-          grab an issue, and send a pull request.
-        </p>
-        <p class="footer-fine">ImgTool · free forever · made with Vue 3</p>
+        <div class="footer-card">
+          <div class="footer-copy">
+            <p class="footer-title">Built in the open. Contributions are welcome!</p>
+            <p class="footer-fine">ImgTool · free forever · made with Vue 3</p>
+          </div>
+          <div class="footer-links">
+            <a class="footer-chip" :href="repoUrl" target="_blank" rel="noopener" title="Star or fork on GitHub">
+              <Github :size="14" />
+              Star or fork
+            </a>
+            <a class="footer-chip" :href="xUrl" target="_blank" rel="noopener" title="Follow @nossesteve on X">
+              <svg class="x-logo" viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231 5.451-6.231zm-1.161 17.52h1.833L7.084 4.126H5.117l11.966 15.644z" />
+              </svg>
+              Follow @nossesteve
+            </a>
+          </div>
+        </div>
       </footer>
     </template>
 
@@ -586,30 +599,64 @@ onBeforeUnmount(() => {
 /* ---------- footer ---------- */
 
 .footer {
-  text-align: center;
-  padding: 14px 16px 22px;
-  color: var(--muted);
-  font-size: 13px;
+  padding: 8px 0 24px;
 }
 
-.footer p {
+.footer-card {
+  max-width: 980px;
+  margin: 0 auto;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.footer-title {
   margin: 0;
-}
-
-.footer a {
-  color: var(--accent-strong);
-  font-weight: 650;
-  text-decoration: none;
-}
-
-.footer a:hover {
-  text-decoration: underline;
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .footer p.footer-fine {
-  margin: 6px 0 0;
+  margin: 3px 0 0;
   font-size: 11.5px;
   color: var(--faint);
+}
+
+.footer-links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.footer-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 0 13px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.footer-chip:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
 }
 
 /* ---------- workbench (editor view) ---------- */

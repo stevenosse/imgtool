@@ -1,24 +1,25 @@
 :root {
-  color-scheme: dark;
-  --bg: #0c0f13;
-  --bg-soft: #11151b;
-  --panel: #151a21;
-  --panel-2: #1b212b;
-  --border: #262e3a;
-  --border-soft: #202834;
-  --text: #e9edf3;
-  --muted: #939db0;
-  --faint: #626d80;
-  --accent: #2fd6a9;
-  --accent-strong: #5ce8c1;
-  --accent-ink: #06231c;
-  --accent-soft: rgba(47, 214, 169, 0.13);
-  --danger: #ff7a59;
-  --warn: #f2c94c;
-  --warn-soft: rgba(242, 201, 76, 0.12);
-  --radius: 12px;
-  --radius-s: 8px;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 28px rgba(0, 0, 0, 0.28);
+  color-scheme: light;
+  --bg: #f3f5fb;
+  --bg-soft: #e9edf6;
+  --panel: #ffffff;
+  --panel-2: #f2f5fa;
+  --border: #e2e7f0;
+  --border-soft: #ebeff6;
+  --text: #171c28;
+  --muted: #5c6a81;
+  --faint: #93a0b4;
+  --accent: #3e8fff;
+  --accent-strong: #1f6feb;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(62, 143, 255, 0.12);
+  --grad: linear-gradient(120deg, #3e8fff, #6d5ef2);
+  --danger: #e5484d;
+  --warn: #b45309;
+  --warn-soft: rgba(245, 158, 11, 0.14);
+  --radius: 14px;
+  --radius-s: 10px;
+  --shadow: 0 1px 2px rgba(23, 28, 40, 0.04), 0 12px 32px rgba(23, 28, 40, 0.08);
 }
 
 * {
@@ -27,25 +28,17 @@
 
 html {
   scrollbar-color: var(--border) transparent;
+  scroll-behavior: smooth;
+  scroll-padding-top: 76px;
 }
 
 body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-size: 14px;
   line-height: 1.45;
-}
-
-/* Desktop workbench: columns own the scrolling, the page never does.
-   Below 1100px the app falls back to a stacked, page-scrolling layout. */
-@media (min-width: 1100px) {
-  html,
-  body {
-    height: 100%;
-    overflow: hidden;
-  }
 }
 
 :focus-visible {
@@ -61,6 +54,7 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 16px;
+  box-shadow: var(--shadow);
 }
 
 .panel-title {
@@ -69,7 +63,7 @@ body {
   gap: 8px;
   margin: 20px 0 10px;
   font-size: 11px;
-  font-weight: 650;
+  font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--muted);
@@ -94,19 +88,21 @@ body {
   gap: 7px;
   min-height: 34px;
   border: 1px solid var(--border);
-  background: var(--panel-2);
+  background: var(--panel);
   color: var(--text);
   font: inherit;
   font-size: 13px;
-  font-weight: 550;
+  font-weight: 600;
   padding: 0 12px;
   border-radius: var(--radius-s);
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.08s;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.08s, box-shadow 0.15s;
 }
 
 .btn:hover:not(:disabled) {
   border-color: var(--accent);
+  color: var(--accent-strong);
 }
 
 .btn:active:not(:disabled) {
@@ -129,29 +125,32 @@ body {
 }
 
 .btn.primary {
-  background: var(--accent);
+  background: var(--grad);
   border-color: transparent;
-  color: var(--accent-ink);
+  color: #ffffff;
   font-weight: 700;
+  box-shadow: 0 6px 16px rgba(62, 143, 255, 0.35);
 }
 
 .btn.primary:hover:not(:disabled) {
-  background: var(--accent-strong);
+  color: #ffffff;
+  filter: brightness(1.06);
+  box-shadow: 0 8px 20px rgba(62, 143, 255, 0.45);
 }
 
 .btn.small {
   min-height: 28px;
   padding: 0 10px;
   font-size: 12px;
-  border-radius: 7px;
+  border-radius: 8px;
 }
 
 .spinner {
   width: 13px;
   height: 13px;
   flex: none;
-  border: 2px solid rgba(6, 35, 28, 0.35);
-  border-top-color: var(--accent-ink);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #ffffff;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
@@ -161,6 +160,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
   .spinner { animation-duration: 1.6s; }
 }
 
@@ -184,9 +184,9 @@ body {
   color: var(--muted);
   font: inherit;
   font-size: 12.5px;
-  font-weight: 550;
+  font-weight: 600;
   padding: 6px 0;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
@@ -196,9 +196,9 @@ body {
 }
 
 .seg button.active {
-  background: var(--panel-2);
-  color: var(--text);
-  box-shadow: inset 0 0 0 1px var(--border);
+  background: var(--panel);
+  color: var(--accent-strong);
+  box-shadow: 0 1px 3px rgba(23, 28, 40, 0.12);
 }
 
 /* ---------- switch ---------- */
@@ -223,7 +223,7 @@ body {
   width: 34px;
   height: 20px;
   border-radius: 999px;
-  background: var(--panel-2);
+  background: var(--bg-soft);
   border: 1px solid var(--border);
   position: relative;
   transition: background 0.15s, border-color 0.15s;
@@ -237,8 +237,9 @@ body {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: var(--muted);
-  transition: transform 0.15s, background 0.15s;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(23, 28, 40, 0.25);
+  transition: transform 0.15s;
 }
 
 .switch input:checked + .track {
@@ -248,7 +249,6 @@ body {
 
 .switch input:checked + .track::after {
   transform: translateX(14px);
-  background: var(--accent-ink);
 }
 
 .switch input:focus-visible + .track {
@@ -284,18 +284,19 @@ body {
   font: inherit;
   font-size: 13px;
   color: var(--text);
-  background: var(--panel-2);
+  background: var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--radius-s);
   padding: 7px 10px;
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s;
   width: 100%;
 }
 
 .field input[type='number']:focus,
 .field select:focus {
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
   outline: none;
 }
 
@@ -325,5 +326,5 @@ body {
 
 .checker {
   background:
-    conic-gradient(#1a1d25 25%, #141720 0 50%, #1a1d25 0 75%, #141720 0) 0 0 / 16px 16px;
+    conic-gradient(#eef1f7 25%, #f9fafc 0 50%, #eef1f7 0 75%, #f9fafc 0) 0 0 / 16px 16px;
 }

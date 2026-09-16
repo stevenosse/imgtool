@@ -588,7 +588,7 @@ function badgeStyle(cell: Cell) {
   scrollbar-width: thin;
   box-shadow: var(--shadow);
   background:
-    conic-gradient(#191d25 25%, #141821 0 50%, #191d25 0 75%, #141821 0) 0 0 / 20px 20px;
+    conic-gradient(#edf0f7 25%, #e3e8f2 0 50%, #edf0f7 0 75%, #e3e8f2 0) 0 0 / 20px 20px;
 }
 
 .editor-empty {
@@ -636,7 +636,7 @@ function badgeStyle(cell: Cell) {
   overflow: hidden;
   touch-action: none;
   border-radius: 2px;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 12px 40px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 0 0 1px rgba(23, 28, 40, 0.1), 0 16px 40px rgba(23, 28, 40, 0.18);
 }
 
 .stage.add-mode,
@@ -651,7 +651,7 @@ function badgeStyle(cell: Cell) {
   height: 14px;
   border: 2px solid var(--accent-strong);
   border-radius: 50%;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.8);
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
@@ -680,10 +680,11 @@ function badgeStyle(cell: Cell) {
   flex-direction: column;
   gap: 2px;
   padding: 3px;
-  background: rgba(13, 17, 22, 0.88);
+  background: rgba(255, 255, 255, 0.92);
   border: 1px solid var(--border);
   border-radius: 9px;
   backdrop-filter: blur(6px);
+  box-shadow: var(--shadow);
 }
 
 .tool-rail .tool {
@@ -762,7 +763,7 @@ function badgeStyle(cell: Cell) {
 }
 
 .zones-overlay .zone {
-  fill: rgba(47, 214, 169, 0.12);
+  fill: rgba(62, 143, 255, 0.14);
   stroke: var(--accent);
   stroke-width: 1.5;
   /* viewBox is in image px — keep strokes at a constant screen width when zoomed. */
@@ -770,7 +771,7 @@ function badgeStyle(cell: Cell) {
 }
 
 .zones-overlay .zone.draft {
-  fill: rgba(47, 214, 169, 0.08);
+  fill: rgba(62, 143, 255, 0.09);
   stroke-dasharray: 5 4;
 }
 
@@ -780,12 +781,12 @@ function badgeStyle(cell: Cell) {
 }
 
 .zones-overlay.selectable .zone:hover {
-  fill: rgba(47, 214, 169, 0.22);
+  fill: rgba(62, 143, 255, 0.2);
   stroke: var(--accent-strong);
 }
 
 .zones-overlay .zone.selected {
-  fill: rgba(47, 214, 169, 0.25);
+  fill: rgba(62, 143, 255, 0.24);
   stroke: var(--accent-strong);
   stroke-dasharray: 4 3;
 }
@@ -857,7 +858,7 @@ function badgeStyle(cell: Cell) {
   content: '';
   position: absolute;
   background: var(--accent);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.7);
 }
 
 .cutline-v::after {
@@ -885,13 +886,14 @@ function badgeStyle(cell: Cell) {
 .size-badge {
   position: absolute;
   z-index: 4;
-  background: rgba(8, 11, 15, 0.88);
+  background: var(--panel);
   border: 1px solid var(--border);
   color: var(--text);
   font-size: 11px;
   font-variant-numeric: tabular-nums;
   padding: 2px 7px;
   border-radius: 6px;
+  box-shadow: var(--shadow);
   pointer-events: none;
   white-space: nowrap;
 }
@@ -900,10 +902,11 @@ function badgeStyle(cell: Cell) {
   display: flex;
   gap: 2px;
   padding: 3px;
-  background: rgba(13, 17, 22, 0.88);
+  background: rgba(255, 255, 255, 0.92);
   border: 1px solid var(--border);
   border-radius: 9px;
   backdrop-filter: blur(6px);
+  box-shadow: var(--shadow);
 }
 
 .canvas-toolbar .tool {

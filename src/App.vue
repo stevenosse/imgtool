@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
-import { Scissors } from 'lucide-vue-next'
+import { Github, Scissors } from 'lucide-vue-next'
 import BackgroundPanel from './components/BackgroundPanel.vue'
 import ControlsPanel from './components/ControlsPanel.vue'
 import DropZone from './components/DropZone.vue'
@@ -9,6 +9,8 @@ import PiecesGallery from './components/PiecesGallery.vue'
 import type { BgOptions, RGB } from './composables/background'
 import type { CutPiece, OutputFormat, ToolMode, TrimOptions } from './composables/useCutter'
 import { disposePieces, loadImage, seedLines, setImage, useCutter } from './composables/useCutter'
+
+const repoUrl = 'https://github.com/stevenosse/imgtool'
 
 const { image, vLines, hLines, cells, zones, cutImage, moveLine, addLine, removeLine, addZone, removeZone, clearZones } = useCutter()
 
@@ -31,6 +33,10 @@ const trim = reactive<TrimOptions>({ enabled: false, padding: 0 })
 function onPickColor(color: RGB) {
   bg.color = color
   bg.enabled = true
+}
+
+function scrollToEditor() {
+  document.getElementById('workbench')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 const lineCount = computed(() => vLines.value.length + hLines.value.length)
@@ -89,6 +95,7 @@ async function onFile(file: File) {
     setImage(loaded)
     seedLines('v', columns.value ?? null)
     seedLines('h', rows.value ?? null)
+    scrollToEditor()
   } catch (err) {
     loadError.value = err instanceof Error ? err.message : 'Could not load this image.'
   }
@@ -159,8 +166,8 @@ onBeforeUnmount(() => {
       <div class="brand">
         <span class="brand-mark">✂</span>
         <div class="brand-text">
-          <h1>Image Cutter</h1>
-          <p>Split · cut the background · export</p>
+          <h1>ImgTool</h1>
+          <p>Cut, split &amp; export — in your browser</p>
         </div>
       </div>
       <ol class="steps" aria-label="Workflow">
@@ -170,6 +177,10 @@ onBeforeUnmount(() => {
         <li :class="{ active: step === 4 }"><span>4</span> Export</li>
       </ol>
       <div class="app-actions">
+        <a class="btn" :href="repoUrl" target="_blank" rel="noopener" title="Star or fork on GitHub">
+          <Github :size="15" />
+          GitHub
+        </a>
         <button
           class="btn primary cut"
           type="button"
@@ -184,7 +195,25 @@ onBeforeUnmount(() => {
       </div>
     </header>
 
-    <main class="workbench" :class="{ 'with-tray': pieces.length > 0 }">
+    <section class="hero">
+      <span class="hero-badge">✨ Free &amp; open source — nothing ever leaves your browser</span>
+      <h2 class="hero-title">Cut images like a pro.<br />No signup. No uploads.</h2>
+      <p class="hero-sub">
+        Slice sprite sheets with a draggable grid, trace irregular shapes with the lasso,
+        strip flat backgrounds and export polished pieces as PNG, JPEG, WebP — or grab everything as a ZIP.
+      </p>
+      <div class="hero-cta">
+        <button class="btn primary hero-btn" type="button" @click="scrollToEditor">
+          Start cutting — it's free
+        </button>
+        <a class="btn hero-btn" :href="repoUrl" target="_blank" rel="noopener">
+          <Github :size="15" />
+          Contribute on GitHub
+        </a>
+      </div>
+    </section>
+
+    <main id="workbench" class="workbench" :class="{ 'with-tray': pieces.length > 0 }">
       <aside class="controls-col">
         <DropZone :image="image" :error="loadError" @file="onFile" />
         <ControlsPanel
@@ -235,6 +264,38 @@ onBeforeUnmount(() => {
       </aside>
     </main>
 
+    <section class="features" aria-label="Features">
+      <div class="feature-card">
+        <div class="feature-ico">📐</div>
+        <h3>Pixel-perfect grid slicing</h3>
+        <p>Set columns and rows, then drag any cut line exactly where you need it. Every piece exports at full resolution.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-ico">🪢</div>
+        <h3>Freeform lasso &amp; polygon zones</h3>
+        <p>Irregular sprite? Trace it freehand or click out a polygon and cut any shape — not just rectangles.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-ico">🧽</div>
+        <h3>One-click background removal</h3>
+        <p>Edge-aware, halo-free transparency for flat backgrounds. Sample any color straight from the image with the eyedropper.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-ico">🔒</div>
+        <h3>Private by design</h3>
+        <p>Everything runs locally in your browser. There is no server — your images literally can't leave your device.</p>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>
+        Built in the open — <strong>contributions are welcome!</strong>
+        <a :href="repoUrl" target="_blank" rel="noopener">Star ⭐ or fork on GitHub</a>,
+        grab an issue, and send a pull request.
+      </p>
+      <p class="footer-fine">ImgTool · free forever · made with Vue 3</p>
+    </footer>
+
     <Transition name="drop-fade">
       <div v-if="dragDepth > 0" class="drop-overlay">
         <div class="drop-card">Drop to import</div>
@@ -245,20 +306,28 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .app {
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 12px 16px 16px;
+  padding: 0 16px 16px;
 }
 
 /* ---------- app bar ---------- */
 
 .app-bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
   display: flex;
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
+  margin: 0 -16px 12px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
 }
 
 .brand {
@@ -274,17 +343,17 @@ onBeforeUnmount(() => {
   display: grid;
   place-items: center;
   font-size: 17px;
-  color: var(--accent);
-  background: var(--accent-soft);
-  border: 1px solid rgba(47, 214, 169, 0.35);
+  color: #ffffff;
+  background: var(--grad);
   border-radius: 10px;
   transform: rotate(-6deg);
+  box-shadow: 0 4px 12px rgba(62, 143, 255, 0.35);
 }
 
 .brand-text h1 {
   margin: 0;
   font-size: 15.5px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -0.01em;
   white-space: nowrap;
 }
@@ -301,7 +370,11 @@ onBeforeUnmount(() => {
   gap: 4px;
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 4px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: var(--shadow);
 }
 
 .steps li {
@@ -309,11 +382,10 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 7px;
   font-size: 12px;
-  font-weight: 550;
+  font-weight: 600;
   color: var(--faint);
   padding: 4px 10px 4px 5px;
   border-radius: 999px;
-  border: 1px solid transparent;
   white-space: nowrap;
 }
 
@@ -325,21 +397,18 @@ onBeforeUnmount(() => {
   font-size: 10px;
   font-weight: 700;
   background: var(--panel-2);
-  border: 1px solid var(--border);
   border-radius: 50%;
   color: var(--muted);
 }
 
 .steps li.active {
   color: var(--text);
-  border-color: var(--border);
-  background: var(--panel);
+  background: var(--accent-soft);
 }
 
 .steps li.active span {
   background: var(--accent);
-  border-color: transparent;
-  color: var(--accent-ink);
+  color: #ffffff;
 }
 
 .steps li.done {
@@ -348,8 +417,7 @@ onBeforeUnmount(() => {
 
 .steps li.done span {
   background: var(--accent-soft);
-  border-color: transparent;
-  color: var(--accent);
+  color: var(--accent-strong);
 }
 
 /* narrow header: keep the numbered dots, drop the labels */
@@ -368,10 +436,61 @@ onBeforeUnmount(() => {
   border-radius: 10px;
 }
 
+/* ---------- hero ---------- */
+
+.hero {
+  text-align: center;
+  padding: 40px 16px 26px;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  border: 1px solid rgba(62, 143, 255, 0.3);
+  color: var(--accent-strong);
+  font-size: 12.5px;
+  font-weight: 650;
+}
+
+.hero-title {
+  margin: 18px 0 0;
+  font-size: clamp(32px, 5vw, 52px);
+  line-height: 1.06;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+
+.hero-sub {
+  margin: 16px auto 0;
+  max-width: 620px;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.hero-cta {
+  margin-top: 22px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.hero-btn {
+  min-height: 42px;
+  padding: 0 20px;
+  font-size: 14px;
+  border-radius: 12px;
+}
+
 /* ---------- workbench ---------- */
 
 .workbench {
-  flex: 1;
+  flex: none;
+  height: clamp(520px, calc(100vh - 340px), 1000px);
   min-height: 0;
   display: grid;
   grid-template-columns: 268px minmax(0, 1fr);
@@ -417,13 +536,83 @@ onBeforeUnmount(() => {
   flex-direction: column;
 }
 
+/* ---------- features ---------- */
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+  padding: 10px 0 4px;
+}
+
+.feature-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 18px;
+}
+
+.feature-ico {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  background: var(--accent-soft);
+  border-radius: 11px;
+  margin-bottom: 12px;
+}
+
+.feature-card h3 {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.feature-card p {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* ---------- footer ---------- */
+
+.footer {
+  text-align: center;
+  padding: 18px 16px 26px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.footer p {
+  margin: 0;
+}
+
+.footer a {
+  color: var(--accent-strong);
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+}
+
+.footer p.footer-fine {
+  margin: 6px 0 0;
+  font-size: 11.5px;
+  color: var(--faint);
+}
+
 /* ---------- drop overlay ---------- */
 
 .drop-overlay {
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: rgba(8, 11, 15, 0.7);
+  background: rgba(240, 244, 251, 0.75);
   backdrop-filter: blur(3px);
   display: grid;
   place-items: center;
@@ -455,7 +644,6 @@ onBeforeUnmount(() => {
 
 @media (max-width: 1099px) {
   .app {
-    height: auto;
     min-height: 100vh;
   }
 
@@ -463,6 +651,7 @@ onBeforeUnmount(() => {
   .workbench.with-tray {
     display: flex;
     flex-direction: column;
+    height: auto;
   }
 
   .canvas-col {

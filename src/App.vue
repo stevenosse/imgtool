@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
-import { Github, Scissors } from 'lucide-vue-next'
+import { Eraser, Github, Grid2x2, Lasso, Lock, Scissors, Sparkles } from 'lucide-vue-next'
 import BackgroundPanel from './components/BackgroundPanel.vue'
 import ControlsPanel from './components/ControlsPanel.vue'
 import DropZone from './components/DropZone.vue'
@@ -14,6 +14,26 @@ const repoUrl = 'https://github.com/stevenosse/imgtool'
 
 const { image, vLines, hLines, cells, zones, cutImage, moveLine, addLine, removeLine, addZone, removeZone, clearZones } = useCutter()
 
+// Two views: a marketing landing page and the editor. Dropping an image
+// anywhere (or opening #/editor) takes you straight into the tool.
+type View = 'landing' | 'editor'
+const view = ref<View>(location.hash === '#/editor' ? 'editor' : 'landing')
+
+function onHash() {
+  view.value = location.hash === '#/editor' ? 'editor' : 'landing'
+}
+
+function openEditor() {
+  if (view.value !== 'editor') location.hash = '#/editor'
+}
+
+function openLanding() {
+  if (view.value !== 'landing') location.hash = '#/'
+}
+
+onMounted(() => window.addEventListener('hashchange', onHash))
+onBeforeUnmount(() => window.removeEventListener('hashchange', onHash))
+
 const columns = ref<number | null>(null)
 const rows = ref<number | null>(null)
 const addMode = ref<ToolMode | null>(null)
@@ -24,7 +44,7 @@ const pieces = ref<CutPiece[]>([])
 const busy = ref(false)
 const loadError = ref('')
 
-// White-background removal: on by default, tuned for sprite sheets —
+// White-background removal: on by default, tuned for sprite sheets;
 // 'edges' keeps background-colored details inside the artwork.
 const bg = reactive<BgOptions>({ enabled: true, color: [255, 255, 255], tolerance: 15, mode: 'edges' })
 const bgPreview = ref(true)
@@ -33,10 +53,6 @@ const trim = reactive<TrimOptions>({ enabled: false, padding: 0 })
 function onPickColor(color: RGB) {
   bg.color = color
   bg.enabled = true
-}
-
-function scrollToEditor() {
-  document.getElementById('workbench')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 const lineCount = computed(() => vLines.value.length + hLines.value.length)
@@ -86,6 +102,7 @@ watch(rows, count => {
 
 async function onFile(file: File) {
   loadError.value = ''
+  openEditor()
   try {
     const loaded = await loadImage(file)
     disposePieces(pieces.value)
@@ -95,7 +112,6 @@ async function onFile(file: File) {
     setImage(loaded)
     seedLines('v', columns.value ?? null)
     seedLines('h', rows.value ?? null)
-    scrollToEditor()
   } catch (err) {
     loadError.value = err instanceof Error ? err.message : 'Could not load this image.'
   }
@@ -121,7 +137,7 @@ async function onCut() {
   }
 }
 
-// Drop an image anywhere on the page.
+// Drop an image anywhere on the page, from either view.
 const dragDepth = ref(0)
 
 function onDragEnter(e: DragEvent) {
@@ -161,16 +177,16 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="app">
+  <div class="app" :class="{ 'is-editor': view === 'editor' }">
     <header class="app-bar">
-      <div class="brand">
-        <span class="brand-mark">✂</span>
-        <div class="brand-text">
-          <h1>ImgTool</h1>
-          <p>Cut, split &amp; export — in your browser</p>
-        </div>
-      </div>
-      <ol class="steps" aria-label="Workflow">
+      <button class="brand" type="button" title="ImgTool home" @click="openLanding">
+        <span class="brand-mark"><Scissors :size="17" /></span>
+        <span class="brand-text">
+          <span class="brand-name">ImgTool</span>
+          <span class="brand-tag">Cut, split &amp; export in your browser</span>
+        </span>
+      </button>
+      <ol v-if="view === 'editor'" class="steps" aria-label="Workflow">
         <li :class="{ active: step === 1, done: step > 1 }"><span>{{ step > 1 ? '✓' : '1' }}</span> Import</li>
         <li :class="{ active: step === 2, done: step > 2 }"><span>{{ step > 2 ? '✓' : '2' }}</span> Split</li>
         <li :class="{ active: step === 3, done: step > 3 }"><span>{{ step > 3 ? '✓' : '3' }}</span> Cut</li>
@@ -182,6 +198,7 @@ onBeforeUnmount(() => {
           GitHub
         </a>
         <button
+          v-if="view === 'editor'"
           class="btn primary cut"
           type="button"
           :disabled="!canCut"
@@ -195,106 +212,117 @@ onBeforeUnmount(() => {
       </div>
     </header>
 
-    <section class="hero">
-      <span class="hero-badge">✨ Free &amp; open source — nothing ever leaves your browser</span>
-      <h2 class="hero-title">Cut images like a pro.<br />No signup. No uploads.</h2>
-      <p class="hero-sub">
-        Slice sprite sheets with a draggable grid, trace irregular shapes with the lasso,
-        strip flat backgrounds and export polished pieces as PNG, JPEG, WebP — or grab everything as a ZIP.
-      </p>
-      <div class="hero-cta">
-        <button class="btn primary hero-btn" type="button" @click="scrollToEditor">
-          Start cutting — it's free
-        </button>
-        <a class="btn hero-btn" :href="repoUrl" target="_blank" rel="noopener">
-          <Github :size="15" />
-          Contribute on GitHub
-        </a>
-      </div>
-    </section>
+    <template v-if="view === 'editor'">
+      <main class="workbench" :class="{ 'with-tray': pieces.length > 0 }">
+        <aside class="controls-col">
+          <DropZone :image="image" :error="loadError" @file="onFile" />
+          <ControlsPanel
+            v-model:columns="columns"
+            v-model:rows="rows"
+            v-model:format="format"
+            v-model:quality="quality"
+            v-model:trim-enabled="trim.enabled"
+            v-model:trim-padding="trim.padding"
+            :has-image="!!image"
+            :line-count="lineCount"
+            :zone-count="zones.length"
+            @reset="onReset"
+          />
+          <BackgroundPanel
+            v-model:enabled="bg.enabled"
+            v-model:color="bg.color"
+            v-model:tolerance="bg.tolerance"
+            v-model:mode="bg.mode"
+            v-model:preview="bgPreview"
+            :has-image="!!image"
+            :lossy-format="format === 'jpeg'"
+          />
+        </aside>
 
-    <main id="workbench" class="workbench" :class="{ 'with-tray': pieces.length > 0 }">
-      <aside class="controls-col">
-        <DropZone :image="image" :error="loadError" @file="onFile" />
-        <ControlsPanel
-          v-model:columns="columns"
-          v-model:rows="rows"
-          v-model:format="format"
-          v-model:quality="quality"
-          v-model:trim-enabled="trim.enabled"
-          v-model:trim-padding="trim.padding"
-          :has-image="!!image"
-          :line-count="lineCount"
-          :zone-count="zones.length"
-          @reset="onReset"
-        />
-        <BackgroundPanel
-          v-model:enabled="bg.enabled"
-          v-model:color="bg.color"
-          v-model:tolerance="bg.tolerance"
-          v-model:mode="bg.mode"
-          v-model:preview="bgPreview"
-          :has-image="!!image"
-          :lossy-format="format === 'jpeg'"
-        />
-      </aside>
+        <section class="canvas-col">
+          <EditorCanvas
+            v-model:add-mode="addMode"
+            v-model:picking="picking"
+            :image="image"
+            :v-lines="vLines"
+            :h-lines="hLines"
+            :cells="cells"
+            :zones="zones"
+            :bg-options="bg"
+            :bg-preview="bgPreview && bg.enabled"
+            @move-line="(a, i, p) => moveLine(a, i, p)"
+            @add-line="(a, p) => addLine(a, p)"
+            @remove-line="removeLine"
+            @add-zone="addZone"
+            @remove-zone="removeZone"
+            @pick="onPickColor"
+          />
+        </section>
 
-      <section class="canvas-col">
-        <EditorCanvas
-          v-model:add-mode="addMode"
-          v-model:picking="picking"
-          :image="image"
-          :v-lines="vLines"
-          :h-lines="hLines"
-          :cells="cells"
-          :zones="zones"
-          :bg-options="bg"
-          :bg-preview="bgPreview && bg.enabled"
-          @move-line="(a, i, p) => moveLine(a, i, p)"
-          @add-line="(a, p) => addLine(a, p)"
-          @remove-line="removeLine"
-          @add-zone="addZone"
-          @remove-zone="removeZone"
-          @pick="onPickColor"
-        />
-      </section>
+        <aside v-if="pieces.length" class="tray-col">
+          <PiecesGallery :pieces="pieces" :base-name="baseName" :stale="piecesStale" />
+        </aside>
+      </main>
+    </template>
 
-      <aside v-if="pieces.length" class="tray-col">
-        <PiecesGallery :pieces="pieces" :base-name="baseName" :stale="piecesStale" />
-      </aside>
-    </main>
+    <template v-else>
+      <main class="landing">
+        <section class="hero">
+          <span class="hero-badge">
+            <Sparkles :size="13" />
+            Free &amp; open source · nothing ever leaves your browser
+          </span>
+          <h2 class="hero-title">Cut images like a pro.<br />No signup. No uploads.</h2>
+          <p class="hero-sub">
+            Slice sprite sheets with a draggable grid, trace irregular shapes with the lasso,
+            strip flat backgrounds and export polished pieces as PNG, JPEG, WebP, or grab
+            everything as a ZIP.
+          </p>
+          <div class="hero-cta">
+            <button class="btn primary hero-btn" type="button" @click="openEditor">
+              Start cutting · it's free
+            </button>
+            <a class="btn hero-btn" :href="repoUrl" target="_blank" rel="noopener">
+              <Github :size="15" />
+              Contribute on GitHub
+            </a>
+          </div>
+          <p class="hero-drop">…or just drop an image anywhere on this page</p>
+        </section>
 
-    <section class="features" aria-label="Features">
-      <div class="feature-card">
-        <div class="feature-ico">📐</div>
-        <h3>Pixel-perfect grid slicing</h3>
-        <p>Set columns and rows, then drag any cut line exactly where you need it. Every piece exports at full resolution.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-ico">🪢</div>
-        <h3>Freeform lasso &amp; polygon zones</h3>
-        <p>Irregular sprite? Trace it freehand or click out a polygon and cut any shape — not just rectangles.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-ico">🧽</div>
-        <h3>One-click background removal</h3>
-        <p>Edge-aware, halo-free transparency for flat backgrounds. Sample any color straight from the image with the eyedropper.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-ico">🔒</div>
-        <h3>Private by design</h3>
-        <p>Everything runs locally in your browser. There is no server — your images literally can't leave your device.</p>
-      </div>
-    </section>
+        <section class="features" aria-label="Features">
+          <div class="feature-card">
+            <div class="feature-ico"><Grid2x2 :size="18" /></div>
+            <h3>Pixel-perfect grid slicing</h3>
+            <p>Set columns and rows, then drag any cut line exactly where you need it. Every piece exports at full resolution.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-ico"><Lasso :size="18" /></div>
+            <h3>Freeform lasso &amp; polygon zones</h3>
+            <p>Irregular sprite? Trace it freehand or click out a polygon and cut any shape, not just rectangles.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-ico"><Eraser :size="18" /></div>
+            <h3>One-click background removal</h3>
+            <p>Edge-aware, halo-free transparency for flat backgrounds. Sample any color straight from the image with the eyedropper.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-ico"><Lock :size="18" /></div>
+            <h3>Private by design</h3>
+            <p>Everything runs locally in your browser. There is no server, so your images literally can't leave your device.</p>
+          </div>
+        </section>
+      </main>
 
-    <footer class="footer">
-      <p>
-        Built in the open — <strong>contributions are welcome!</strong>
-        <a :href="repoUrl" target="_blank" rel="noopener">Star ⭐ or fork on GitHub</a>,
-        grab an issue, and send a pull request.
-      </p>
-      <p class="footer-fine">ImgTool · free forever · made with Vue 3</p>
-    </footer>
+      <footer class="footer">
+        <p>
+          Built in the open, and <strong>contributions are welcome!</strong>
+          <a :href="repoUrl" target="_blank" rel="noopener">Star or fork on GitHub</a>,
+          grab an issue, and send a pull request.
+        </p>
+        <p class="footer-fine">ImgTool · free forever · made with Vue 3</p>
+      </footer>
+    </template>
 
     <Transition name="drop-fade">
       <div v-if="dragDepth > 0" class="drop-overlay">
@@ -306,11 +334,14 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .app {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 0 16px 16px;
+  padding: 0 16px;
+}
+
+.app.is-editor {
+  height: 100dvh;
 }
 
 /* ---------- app bar ---------- */
@@ -335,6 +366,14 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 11px;
   margin-right: auto;
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
 }
 
 .brand-mark {
@@ -342,24 +381,26 @@ onBeforeUnmount(() => {
   height: 34px;
   display: grid;
   place-items: center;
-  font-size: 17px;
   color: #ffffff;
-  background: var(--grad);
+  background: var(--accent);
   border-radius: 10px;
   transform: rotate(-6deg);
-  box-shadow: 0 4px 12px rgba(62, 143, 255, 0.35);
+  box-shadow: 0 4px 10px rgba(62, 143, 255, 0.3);
 }
 
-.brand-text h1 {
-  margin: 0;
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-name {
   font-size: 15.5px;
   font-weight: 800;
   letter-spacing: -0.01em;
   white-space: nowrap;
 }
 
-.brand-text p {
-  margin: 1px 0 0;
+.brand-tag {
   font-size: 11.5px;
   color: var(--muted);
   white-space: nowrap;
@@ -436,11 +477,20 @@ onBeforeUnmount(() => {
   border-radius: 10px;
 }
 
-/* ---------- hero ---------- */
+/* ---------- landing ---------- */
+
+.landing {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px 0 12px;
+}
 
 .hero {
   text-align: center;
-  padding: 40px 16px 26px;
+  padding: 28px 16px 20px;
 }
 
 .hero-badge {
@@ -486,16 +536,92 @@ onBeforeUnmount(() => {
   border-radius: 12px;
 }
 
-/* ---------- workbench ---------- */
+.hero-drop {
+  margin: 16px 0 0;
+  font-size: 12.5px;
+  color: var(--faint);
+}
+
+/* ---------- features ---------- */
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.feature-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 18px;
+}
+
+.feature-ico {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  border-radius: 11px;
+  margin-bottom: 12px;
+}
+
+.feature-card h3 {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.feature-card p {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* ---------- footer ---------- */
+
+.footer {
+  text-align: center;
+  padding: 14px 16px 22px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.footer p {
+  margin: 0;
+}
+
+.footer a {
+  color: var(--accent-strong);
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+}
+
+.footer p.footer-fine {
+  margin: 6px 0 0;
+  font-size: 11.5px;
+  color: var(--faint);
+}
+
+/* ---------- workbench (editor view) ---------- */
 
 .workbench {
-  flex: none;
-  height: clamp(520px, calc(100vh - 340px), 1000px);
+  flex: 1;
   min-height: 0;
   display: grid;
   grid-template-columns: 268px minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
   gap: 12px;
+  margin-bottom: 12px;
 }
 
 .workbench.with-tray {
@@ -536,76 +662,6 @@ onBeforeUnmount(() => {
   flex-direction: column;
 }
 
-/* ---------- features ---------- */
-
-.features {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 12px;
-  padding: 10px 0 4px;
-}
-
-.feature-card {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 18px;
-}
-
-.feature-ico {
-  width: 38px;
-  height: 38px;
-  display: grid;
-  place-items: center;
-  font-size: 18px;
-  background: var(--accent-soft);
-  border-radius: 11px;
-  margin-bottom: 12px;
-}
-
-.feature-card h3 {
-  margin: 0;
-  font-size: 14.5px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-.feature-card p {
-  margin: 6px 0 0;
-  font-size: 12.5px;
-  color: var(--muted);
-}
-
-/* ---------- footer ---------- */
-
-.footer {
-  text-align: center;
-  padding: 18px 16px 26px;
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.footer p {
-  margin: 0;
-}
-
-.footer a {
-  color: var(--accent-strong);
-  font-weight: 650;
-  text-decoration: none;
-}
-
-.footer a:hover {
-  text-decoration: underline;
-}
-
-.footer p.footer-fine {
-  margin: 6px 0 0;
-  font-size: 11.5px;
-  color: var(--faint);
-}
-
 /* ---------- drop overlay ---------- */
 
 .drop-overlay {
@@ -643,15 +699,16 @@ onBeforeUnmount(() => {
 /* ---------- stacked fallback for narrow screens ---------- */
 
 @media (max-width: 1099px) {
-  .app {
-    min-height: 100vh;
+  .app.is-editor {
+    height: auto;
+    min-height: 100dvh;
   }
 
   .workbench,
   .workbench.with-tray {
     display: flex;
     flex-direction: column;
-    height: auto;
+    min-height: 0;
   }
 
   .canvas-col {

@@ -13,7 +13,6 @@
   --accent-strong: #1f6feb;
   --accent-ink: #ffffff;
   --accent-soft: rgba(62, 143, 255, 0.12);
-  --grad: linear-gradient(120deg, #3e8fff, #6d5ef2);
   --danger: #e5484d;
   --warn: #b45309;
   --warn-soft: rgba(245, 158, 11, 0.14);
@@ -28,8 +27,6 @@
 
 html {
   scrollbar-color: var(--border) transparent;
-  scroll-behavior: smooth;
-  scroll-padding-top: 76px;
 }
 
 body {
@@ -70,8 +67,8 @@ body {
 }
 
 .panel-title .ico {
-  font-size: 12px;
-  filter: grayscale(0.15);
+  display: inline-flex;
+  color: var(--accent);
 }
 
 .panel-title:first-child {
@@ -125,17 +122,17 @@ body {
 }
 
 .btn.primary {
-  background: var(--grad);
+  background: var(--accent);
   border-color: transparent;
   color: #ffffff;
   font-weight: 700;
-  box-shadow: 0 6px 16px rgba(62, 143, 255, 0.35);
+  box-shadow: 0 4px 12px rgba(62, 143, 255, 0.28);
 }
 
 .btn.primary:hover:not(:disabled) {
+  background: var(--accent-strong);
   color: #ffffff;
-  filter: brightness(1.06);
-  box-shadow: 0 8px 20px rgba(62, 143, 255, 0.45);
+  box-shadow: 0 6px 16px rgba(62, 143, 255, 0.36);
 }
 
 .btn.small {
@@ -160,7 +157,6 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
   .spinner { animation-duration: 1.6s; }
 }
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { Eraser } from 'lucide-vue-next'
 import type { BgMode, RGB } from '../composables/background'
 
 const enabled = defineModel<boolean>('enabled')
@@ -38,7 +39,7 @@ function setWhite() {
 
 <template>
   <section class="panel">
-    <h2 class="panel-title"><span class="ico">🧽</span> Background</h2>
+    <h2 class="panel-title"><span class="ico"><Eraser :size="13" /></span> Background</h2>
 
     <label class="switch">
       <input v-model="enabled" type="checkbox" />
@@ -66,11 +67,11 @@ function setWhite() {
         </button>
       </div>
       <p class="hint">
-        💧 Use the eyedropper on the canvas to sample it straight from the image.
+        Use the eyedropper on the canvas to sample it straight from the image.
       </p>
 
       <label class="field tolerance">
-        <span>Tolerance — {{ tolerance }}%</span>
+        <span>Tolerance · {{ tolerance }}%</span>
         <input v-model.number="tolerance" type="range" min="0" max="100" step="1" />
       </label>
 
@@ -89,7 +90,7 @@ function setWhite() {
         </div>
       </div>
       <p v-if="mode === 'edges'" class="hint">
-        Only the background touching the borders is removed — the same color inside the artwork
+        Only the background touching the borders is removed; the same color inside the artwork
         (eyes, highlights) is kept.
       </p>
 
@@ -100,7 +101,7 @@ function setWhite() {
       </label>
 
       <p v-if="lossyFormat" class="error">
-        JPEG has no transparency — switch to PNG or WebP to keep the removed background.
+        JPEG has no transparency. Switch to PNG or WebP to keep the removed background.
       </p>
       <p class="hint">Anti-aliased edges keep partial transparency with the background un-blended, so no halo remains.</p>
     </template>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { Image as ImageIcon } from 'lucide-vue-next'
 import type { LoadedImage } from '../composables/useCutter'
 
 defineProps<{
@@ -31,11 +32,11 @@ onBeforeUnmount(() => window.removeEventListener('paste', onPaste))
 
 <template>
   <section class="panel">
-    <h2 class="panel-title"><span class="ico">🖼</span> Image</h2>
+    <h2 class="panel-title"><span class="ico"><ImageIcon :size="13" /></span> Image</h2>
     <input ref="input" type="file" accept="image/*" hidden @change="onPick" />
 
     <div v-if="!image" class="dropzone" @click="input?.click()">
-      <div class="dz-icon">🖼️</div>
+      <div class="dz-icon"><ImageIcon :size="30" /></div>
       <p class="dz-main">Drop an image anywhere</p>
       <p class="dz-sub">or click to browse · paste with ⌘/Ctrl+V</p>
     </div>
@@ -73,7 +74,7 @@ onBeforeUnmount(() => window.removeEventListener('paste', onPaste))
 }
 
 .dz-icon {
-  font-size: 26px;
+  color: var(--accent);
 }
 
 .dz-main {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { Download, FolderDown, PanelRightClose, PanelRightOpen } from 'lucide-vue-next'
+import { Download, FolderDown, PanelRightClose, PanelRightOpen, Puzzle } from 'lucide-vue-next'
 import type { CutPiece } from '../composables/useCutter'
 import { downloadBlob, piecesToZip } from '../composables/useCutter'
 
@@ -49,7 +49,7 @@ function fmtSize(bytes: number): string {
         <PanelRightOpen v-else :size="14" />
       </button>
       <div class="tray-title">
-        <h2 class="panel-title"><span class="ico">🧩</span> Pieces ({{ pieces.length }})</h2>
+        <h2 class="panel-title"><span class="ico"><Puzzle :size="13" /></span> Pieces ({{ pieces.length }})</h2>
         <p class="tray-sub">{{ totalSize }} total</p>
       </div>
       <button class="btn small primary" type="button" :disabled="zipping" @click="downloadZip">
@@ -60,7 +60,7 @@ function fmtSize(bytes: number): string {
 
     <template v-if="!collapsed">
       <div v-if="stale" class="stale-note">
-        Settings changed — run <strong>Cut image</strong> again to refresh.
+        Settings changed. Run <strong>Cut image</strong> again to refresh.
       </div>
 
       <div class="tray-list">

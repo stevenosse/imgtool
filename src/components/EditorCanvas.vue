@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { Lasso, Maximize, MousePointer2, PenTool, Pipette, SeparatorHorizontal, SeparatorVertical, ZoomIn, ZoomOut } from 'lucide-vue-next'
+import { Lasso, Maximize, MousePointer2, PenTool, Pipette, Scissors, SeparatorHorizontal, SeparatorVertical, ZoomIn, ZoomOut } from 'lucide-vue-next'
 import type { BgOptions, RGB } from '../composables/background'
 import { removeBackground } from '../composables/background'
 import type { Cell, LineAxis, LoadedImage, ToolMode, Zone, ZonePoint } from '../composables/useCutter'
@@ -205,7 +205,7 @@ function addPolygonVertex(p: ZonePoint) {
     return
   }
   const last = d.points[d.points.length - 1]
-  // Ignore sub-pixel repeats — the second click of a double-click lands here too.
+  // Ignore sub-pixel repeats: the second click of a double-click lands here too.
   if (last && Math.hypot(p.x - last.x, p.y - last.y) * scale.value < 2) return
   draft.value = { ...d, points: [...d.points, p] }
 }
@@ -388,7 +388,7 @@ function badgeStyle(cell: Cell) {
 <template>
   <div ref="viewport" class="editor-viewport" @wheel="onWheel">
     <div v-if="!image" class="editor-empty">
-      <div class="empty-mark">✂</div>
+      <div class="empty-mark"><Scissors :size="24" /></div>
       <p class="empty-title">No image yet</p>
       <p class="empty-sub">Drop one anywhere on this page, paste it, or pick a file from the sidebar</p>
     </div>
@@ -504,7 +504,7 @@ function badgeStyle(cell: Cell) {
         <button
           class="tool"
           type="button"
-          title="Select — drag lines, click a zone then Delete to remove it"
+          title="Select · drag lines, click a zone, press Delete to remove it"
           :class="{ active: !addMode && !picking }"
           @click="selectTool"
         >
@@ -531,7 +531,7 @@ function badgeStyle(cell: Cell) {
         <button
           class="tool"
           type="button"
-          title="Freehand zone — drag to draw a cut region"
+          title="Freehand zone · drag to draw a cut region"
           :class="{ active: addMode === 'freehand' }"
           @click="toggleAddMode('freehand')"
         >
@@ -540,7 +540,7 @@ function badgeStyle(cell: Cell) {
         <button
           class="tool"
           type="button"
-          title="Polygon zone — click points, double-click or Enter to close"
+          title="Polygon zone · click points, double-click or Enter to close"
           :class="{ active: addMode === 'polygon' }"
           @click="toggleAddMode('polygon')"
         >
@@ -610,7 +610,6 @@ function badgeStyle(cell: Cell) {
   height: 56px;
   display: grid;
   place-items: center;
-  font-size: 26px;
   color: var(--accent);
   border: 2px dashed var(--border);
   border-radius: 16px;
@@ -766,7 +765,7 @@ function badgeStyle(cell: Cell) {
   fill: rgba(62, 143, 255, 0.14);
   stroke: var(--accent);
   stroke-width: 1.5;
-  /* viewBox is in image px — keep strokes at a constant screen width when zoomed. */
+  /* viewBox is in image px, so keep strokes at a constant screen width when zoomed. */
   vector-effect: non-scaling-stroke;
 }
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Scissors } from 'lucide-vue-next'
+import { Crop, Download, Scissors, Slice } from 'lucide-vue-next'
 import type { OutputFormat } from '../composables/useCutter'
 
 const columns = defineModel<number | null>('columns')
@@ -36,7 +36,7 @@ function toCount(e: Event): number | null {
 
 <template>
   <section class="panel">
-    <h2 class="panel-title"><span class="ico">✂</span> Split</h2>
+    <h2 class="panel-title"><span class="ico"><Scissors :size="13" /></span> Split</h2>
     <div class="counts">
       <label class="field">
         <span>Columns</span>
@@ -63,9 +63,9 @@ function toCount(e: Event): number | null {
         />
       </label>
     </div>
-    <p class="hint">A count seeds evenly spaced lines — then drag any line to place cuts freely.</p>
+    <p class="hint">A count seeds evenly spaced lines, then drag any line to place cuts freely.</p>
 
-    <h2 class="panel-title"><span class="ico">╌</span> Lines &amp; zones</h2>
+    <h2 class="panel-title"><span class="ico"><Slice :size="13" /></span> Lines &amp; zones</h2>
     <p class="hint">
       Lines: drag to move · double-click to remove · the lasso and polygon tools draw freeform zones
       <template v-if="lineCount > 0"> · {{ lineCount }} line{{ lineCount === 1 ? '' : 's' }}</template>
@@ -77,7 +77,7 @@ function toCount(e: Event): number | null {
       </button>
     </div>
 
-    <h2 class="panel-title"><span class="ico">⛶</span> Trim</h2>
+    <h2 class="panel-title"><span class="ico"><Crop :size="13" /></span> Trim</h2>
     <label class="switch">
       <input v-model="trimEnabled" type="checkbox" />
       <span class="track"></span>
@@ -85,13 +85,13 @@ function toCount(e: Event): number | null {
     </label>
     <template v-if="trimEnabled">
       <label class="field trim-pad">
-        <span>Padding — {{ trimPadding }} px</span>
+        <span>Padding · {{ trimPadding }} px</span>
         <input v-model.number="trimPadding" type="range" min="0" max="48" step="1" />
       </label>
       <p class="hint">Crops transparent space around each piece. Needs alpha (background removal or a transparent PNG).</p>
     </template>
 
-    <h2 class="panel-title"><span class="ico">⤓</span> Output</h2>
+    <h2 class="panel-title"><span class="ico"><Download :size="13" /></span> Output</h2>
     <div class="seg" role="group" aria-label="Output format">
       <button
         v-for="f in formats"
@@ -105,12 +105,12 @@ function toCount(e: Event): number | null {
       </button>
     </div>
     <label v-if="format !== 'png'" class="field quality">
-      <span>Quality — {{ Math.round(quality * 100) }}%</span>
+      <span>Quality · {{ Math.round(quality * 100) }}%</span>
       <input v-model.number="quality" type="range" min="0.5" max="1" step="0.05" />
     </label>
     <div class="cut-note">
       <Scissors :size="13" />
-      <span>Cut from the toolbar above — pieces land in the tray</span>
+      <span>Cut from the toolbar above · pieces land in the tray</span>
     </div>
   </section>
 </template>

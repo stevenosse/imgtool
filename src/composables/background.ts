@@ -29,10 +29,15 @@ export interface BgOptions {
  */
 const RING_RADIUS = 4
 
+/** tolerance % → Chebyshev distance cutoff used for background matching. */
+function toleranceToDist(tolerance: number): number {
+  return Math.max(1, Math.round((tolerance / 100) * 96))
+}
+
 export function removeBackground(img: ImageData, opts: BgOptions): void {
   const { width: w, height: h, data } = img
   const [br, bg, bb] = opts.color
-  const low = Math.max(1, Math.round((opts.tolerance / 100) * 96))
+  const low = toleranceToDist(opts.tolerance)
   // tolerance 0 => binary cutout of the exact color only; otherwise keep a soft band
   const high = low <= 1 ? low + 1 : Math.min(low * 2 + 16, 160)
   const n = w * h
@@ -191,12 +196,77 @@ function ringAround(bgMask: Uint8Array, w: number, h: number, radius: number): U
   return ring
 }
 
-/** Bounding box of visible (alpha > 0) pixels, grown by `pad`, clamped to the image. */
+/** A flat color (plus distance) treated as empty space when trimming. */
+export interface TrimRef {
+  color: RGB
+  /** Chebyshev distance from `color` still counted as empty. */
+  tol: number
+}
+
+/** Pixels fainter than this alpha are ignored when trimming (anti-aliased fringes). */
+const TRIM_ALPHA_MIN = 16
+/** Trim accepts slightly more background tint than removal, so soft glows just
+ *  past the removal tolerance don't pin the crop box. */
+const TRIM_SLACK = 8
+
+/** Trim reference from the background-removal settings. */
+export function trimRefFromBg(bg: BgOptions): TrimRef {
+  return { color: bg.color, tol: toleranceToDist(bg.tolerance) + TRIM_SLACK }
+}
+
+/** Dominant flat color along the borders, for trimming pieces without alpha
+ *  (JPEG output, background removal off). Returns null when the border is
+ *  varied — photos have no meaningful "empty margin" to crop. */
+export function detectBorderTrimRef(img: ImageData): TrimRef | null {
+  const { width: w, height: h, data } = img
+  const buckets = new Map<number, { n: number; r: number; g: number; b: number }>()
+  const sample = (x: number, y: number): void => {
+    const p = (y * w + x) * 4
+    if (data[p + 3] < 128) return
+    // 16-step buckets absorb the slight noise of JPEG/WebP backgrounds.
+    const key = (data[p] >> 4 << 8) | (data[p + 1] >> 4 << 4) | (data[p + 2] >> 4)
+    const c = buckets.get(key)
+    if (c) {
+      c.n++
+      c.r += data[p]
+      c.g += data[p + 1]
+      c.b += data[p + 2]
+    } else {
+      buckets.set(key, { n: 1, r: data[p], g: data[p + 1], b: data[p + 2] })
+    }
+  }
+  for (let x = 0; x < w; x++) {
+    sample(x, 0)
+    sample(x, h - 1)
+  }
+  for (let y = 1; y < h - 1; y++) {
+    sample(0, y)
+    sample(w - 1, y)
+  }
+  let best: { n: number; r: number; g: number; b: number } | null = null
+  for (const c of buckets.values()) {
+    if (!best || c.n > best.n) best = c
+  }
+  if (!best || best.n < (2 * (w + h - 2)) / 2) return null
+  return {
+    color: [Math.round(best.r / best.n), Math.round(best.g / best.n), Math.round(best.b / best.n)],
+    tol: 12 + TRIM_SLACK,
+  }
+}
+
+/** Bounding box of content pixels, grown by `pad`, clamped to the image.
+ *
+ * A pixel counts as content when it is opaque enough (faint fringes don't
+ * hold the box open) and, when `ref` is given, differs from the flat
+ * background color — so trim also crops flat-but-opaque margins. */
 export function contentBBox(
   img: ImageData,
   pad: number,
+  ref?: TrimRef | null,
 ): { x: number; y: number; w: number; h: number } | null {
   const { width: w, height: h, data } = img
+  const [br, bg, bb] = ref?.color ?? [0, 0, 0]
+  const tol = ref?.tol ?? -1
   let minX = w
   let minY = h
   let maxX = -1
@@ -204,12 +274,18 @@ export function contentBBox(
   for (let y = 0; y < h; y++) {
     const row = y * w * 4
     for (let x = 0; x < w; x++) {
-      if (data[row + x * 4 + 3] > 0) {
-        if (x < minX) minX = x
-        if (x > maxX) maxX = x
-        if (y < minY) minY = y
-        if (y > maxY) maxY = y
+      const p = row + x * 4
+      if (data[p + 3] < TRIM_ALPHA_MIN) continue
+      if (tol >= 0) {
+        const dr = Math.abs(data[p] - br)
+        const dg = Math.abs(data[p + 1] - bg)
+        const db = Math.abs(data[p + 2] - bb)
+        if (Math.max(dr, dg, db) <= tol) continue
       }
+      if (x < minX) minX = x
+      if (x > maxX) maxX = x
+      if (y < minY) minY = y
+      if (y > maxY) maxY = y
     }
   }
   if (maxX < 0) return null

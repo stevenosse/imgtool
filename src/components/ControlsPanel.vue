@@ -88,7 +88,7 @@ function toCount(e: Event): number | null {
         <span>Padding · {{ trimPadding }} px</span>
         <input v-model.number="trimPadding" type="range" min="0" max="48" step="1" />
       </label>
-      <p class="hint">Crops transparent space around each piece. Needs alpha (background removal or a transparent PNG).</p>
+      <p class="hint">Crops empty space around each piece — transparent margins or a flat background color.</p>
     </template>
 
     <h2 class="panel-title"><span class="ico"><Download :size="13" /></span> Output</h2>

@@ -1,7 +1,7 @@
 import JSZip from 'jszip'
 import { computed, ref, shallowRef } from 'vue'
 import type { BgOptions } from './background'
-import { contentBBox, removeBackground } from './background'
+import { contentBBox, detectBorderTrimRef, removeBackground, trimRefFromBg } from './background'
 
 export interface LoadedImage {
   el: ImageBitmap | HTMLImageElement
@@ -246,24 +246,29 @@ export async function cutImage(
     const canvas = ctx.canvas
     const w = canvas.width
     const h = canvas.height
+    // Measure the crop box on the piece as drawn: removal un-blends leftover
+    // near-background noise into dark specks that would read as content.
+    // With background removal the empty color is known; otherwise look for a
+    // flat border color so opaque pieces still crop.
+    let box: { x: number; y: number; w: number; h: number } | null = null
+    if (trim?.enabled) {
+      const id = ctx.getImageData(0, 0, w, h)
+      const ref = bg?.enabled ? trimRefFromBg(bg) : detectBorderTrimRef(id)
+      box = contentBBox(id, Math.max(0, Math.round(trim.padding)), ref)
+    }
     // Background removal never applies to JPEG — it has no alpha channel.
     if (bg?.enabled && format !== 'jpeg') {
       const id = ctx.getImageData(0, 0, w, h)
       removeBackground(id, bg)
       ctx.putImageData(id, 0, 0)
     }
-    // Trim transparent margins down to the content bbox (+ padding).
     let out: HTMLCanvasElement = canvas
-    if (trim?.enabled) {
-      const id = ctx.getImageData(0, 0, w, h)
-      const box = contentBBox(id, Math.max(0, Math.round(trim.padding)))
-      if (box && (box.w !== w || box.h !== h)) {
-        const cropped = document.createElement('canvas')
-        cropped.width = box.w
-        cropped.height = box.h
-        cropped.getContext('2d')!.drawImage(canvas, box.x, box.y, box.w, box.h, 0, 0, box.w, box.h)
-        out = cropped
-      }
+    if (box && (box.w !== w || box.h !== h)) {
+      const cropped = document.createElement('canvas')
+      cropped.width = box.w
+      cropped.height = box.h
+      cropped.getContext('2d')!.drawImage(canvas, box.x, box.y, box.w, box.h, 0, 0, box.w, box.h)
+      out = cropped
     }
     const blob = await new Promise<Blob | null>(resolve => out.toBlob(resolve, mime, format === 'png' ? undefined : quality))
     if (!blob) return
